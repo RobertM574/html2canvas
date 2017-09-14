@@ -41,7 +41,9 @@ function html2canvas(nodeList, options) {
 
     var node = ((nodeList === undefined) ? [document.documentElement] : ((nodeList.length) ? nodeList : [nodeList]))[0];
     node.setAttribute(html2canvasNodeAttribute + index, index);
-    return renderDocument(node.ownerDocument, options, node.ownerDocument.defaultView.innerWidth, node.ownerDocument.defaultView.innerHeight, index).then(function(canvas) {
+    var cWidth = options.width != null ? options.width : node.ownerDocument.defaultView.innerWidth;
+    var cHeight = options.height != null ? options.height : node.ownerDocument.defaultView.innerHeight;
+    return renderDocument(node.ownerDocument, options, cWidth, cHeight, index).then(function(canvas) {
         if (typeof(options.onrendered) === "function") {
             log("options.onrendered is deprecated, html2canvas returns a Promise containing the canvas");
             options.onrendered(canvas);
@@ -97,9 +99,14 @@ function renderWindow(node, container, options, windowWidth, windowHeight) {
 
         if (options.type === "view") {
             canvas = crop(renderer.canvas, {width: renderer.canvas.width, height: renderer.canvas.height, top: 0, left: 0, x: 0, y: 0});
-        } else if (node === clonedWindow.document.body || node === clonedWindow.document.documentElement || options.canvas != null) {
+        } else if (node === clonedWindow.document.body || node === clonedWindow.document.documentElement) {
             canvas = renderer.canvas;
-        } else {
+        }else if(options.scale && options.canvas !=null){
+            log("放大canvas",options.canvas);
+            var scale = options.scale || 1;
+            canvas = crop(renderer.canvas, {width: bounds.width * scale, height:bounds.height * scale, top: bounds.top *scale, left: bounds.left *scale, x: 0, y: 0});
+        }
+        else {
             canvas = crop(renderer.canvas, {width:  options.width != null ? options.width : bounds.width, height: options.height != null ? options.height : bounds.height, top: bounds.top, left: bounds.left, x: 0, y: 0});
         }
 
